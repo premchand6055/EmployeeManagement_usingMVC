@@ -1,0 +1,156 @@
+﻿@model IEnumerable<EmployeeManagement.Models.Employee>
+
+<h1>Employee List</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>S.No.</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>DOJ</th>
+            <th>Salary</th>
+            <th>Gender</th>
+            <th>State</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Select((value, index) => new { index, value }))
+        {
+            <tr id="employee-@item.value.EmployeeID">
+                <td>@(item.index + 1)</td> <!-- Display sequence number starting from 1 -->
+                <td>
+                    <a href="javascript:void(0);" class="edit-name" data-id="@item.value.EmployeeID">@item.value.Name</a>
+                    <input type="text" class="edit-name-input" data-id="@item.value.EmployeeID" value="@item.value.Name" style="display:none;" />
+                </td>
+                <td>
+                    <input type="text" class="edit-designation" data-id="@item.value.EmployeeID" value="@item.value.Designation" style="display:none;" />
+                    <span>@item.value.Designation</span>
+                </td>
+                <td>
+                    <input type="text" class="edit-doj" data-id="@item.value.EmployeeID" value="@item.value.DateOfJoin.ToString("yyyy-MM-dd")" style="display:none;" />
+                    <span>@item.value.DateOfJoin.ToString("dd/MM/yyyy")</span>
+                </td>
+                <td>
+                    <input type="text" class="edit-salary" data-id="@item.value.EmployeeID" value="@item.value.Salary" style="display:none;" />
+                    <span>@item.value.Salary</span>
+                </td>
+                <td>
+                    <input type="text" class="edit-gender" data-id="@item.value.EmployeeID" value="@item.value.Gender" style="display:none;" />
+                    <span>@item.value.Gender</span>
+                </td>
+                <td>
+                    <input type="text" class="edit-state" data-id="@item.value.EmployeeID" value="@item.value.State" style="display:none;" />
+                    <span>@item.value.State</span>
+                </td>
+                <td>
+                    <button class="delete-btn" data-id="@item.value.EmployeeID">Delete</button>
+                    <button class="save-btn" data-id="@item.value.EmployeeID" style="display:none;">Save</button>
+                    <button class="cancel-btn" data-id="@item.value.EmployeeID" style="display:none;">Cancel</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Display sum of salaries -->
+<div id="salary-summary">
+    <strong>Total Salary: </strong><span id="sum-of-salary"></span>
+</div>
+
+<!-- Placeholder for success/error messages -->
+<div id="message" style="color: red;"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Function to calculate the sum of salaries
+        function calculateSalarySum() {
+            var totalSalary = 0;
+            $(".edit-salary").each(function () {
+                totalSalary += parseFloat($(this).val()) || 0;
+            });
+            $("#sum-of-salary").text(totalSalary.toFixed(2)); // Display total salary
+        }
+
+        // Trigger calculation on page load
+        calculateSalarySum();
+
+        // Toggle between view and edit mode for Name, Designation, DOJ, Salary, Gender, State
+        $(".edit-name").click(function () {
+            var id = $(this).data("id");
+            $(".edit-name-input[data-id='" + id + "']").toggle();
+            $(".edit-name[data-id='" + id + "']").toggle();
+            $(".save-btn[data-id='" + id + "']").toggle();
+            $(".cancel-btn[data-id='" + id + "']").toggle();
+        });
+
+        // Save the changes to the database via AJAX
+        $(".save-btn").click(function () {
+            var id = $(this).data("id");
+            var name = $(".edit-name-input[data-id='" + id + "']").val();
+            var designation = $(".edit-designation[data-id='" + id + "']").val();
+            var doj = $(".edit-doj[data-id='" + id + "']").val();
+            var salary = $(".edit-salary[data-id='" + id + "']").val();
+            var gender = $(".edit-gender[data-id='" + id + "']").val();
+            var state = $(".edit-state[data-id='" + id + "']").val();
+
+            $.ajax({
+                url: '@Url.Action("Edit", "Employees")',
+                type: 'POST',
+                data: {
+                    EmployeeID: id,
+                    Name: name,
+                    Designation: designation,
+                    DateOfJoin: doj,
+                    Salary: salary,
+                    Gender: gender,
+                    State: state
+                },
+                success: function (response) {
+                    if (response.success) {
+                        location.reload(); // Reload the page to reflect changes
+                    } else {
+                        $("#message").text(response.message);
+                    }
+                },
+                error: function () {
+                    $("#message").text("Error updating record.");
+                }
+            });
+        });
+
+        // Cancel editing mode
+        $(".cancel-btn").click(function () {
+            var id = $(this).data("id");
+            $(".edit-name-input[data-id='" + id + "']").toggle();
+            $(".edit-name[data-id='" + id + "']").toggle();
+            $(".save-btn[data-id='" + id + "']").toggle();
+            $(".cancel-btn[data-id='" + id + "']").toggle();
+        });
+
+        // Delete employee record via AJAX
+        $(".delete-btn").click(function () {
+            var id = $(this).data("id");
+            if (confirm("Are you sure you want to delete this record?")) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Employees")',
+                    type: 'POST',
+                    data: { EmployeeID: id },
+                    success: function (response) {
+                        if (response.success) {
+                            $("#employee-" + id).remove(); // Remove the row from the table
+                            calculateSalarySum(); // Recalculate salary sum after deletion
+                        } else {
+                            $("#message").text(response.message);
+                        }
+                    },
+                    error: function () {
+                        $("#message").text("Error deleting record.");
+                    }
+                });
+            }
+        });
+    });
+</script>

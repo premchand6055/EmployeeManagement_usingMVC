@@ -1,0 +1,74 @@
+﻿@model EmployeeManagement.Models.Employee
+
+<h2>Create Employee</h2>
+
+<form asp-action="Create" id="employeeForm">
+    <div>
+        <label for="Name">Name:</label>
+        <input type="text" id="Name" name="Name" class="form-control" />
+    </div>
+
+    <div>
+        <label for="Designation">Designation:</label>
+        <input type="text" id="Designation" name="Designation" class="form-control" />
+    </div>
+
+    <div>
+        <label for="DateOfJoin">Date of Join:</label>
+        <input type="date" id="DateOfJoin" name="DateOfJoin" class="form-control" />
+    </div>
+
+    <div>
+        <label for="Salary">Salary:</label>
+        <input type="number" id="Salary" name="Salary" class="form-control" />
+    </div>
+
+    <div>
+        <label>Gender:</label>
+        <label>
+            <input type="radio" name="Gender" value="Male" /> Male
+        </label>
+        <label>
+            <input type="radio" name="Gender" value="Female" /> Female
+        </label>
+    </div>
+
+    <div>
+        <label for="State">State:</label>
+        <select id="State" name="State" class="form-control">
+            <option value="">Select a state</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Telangana">Telangana</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.19.5/additional-methods.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#employeeForm").validate({
+            rules: {
+                Name: { required: true, maxlength: 100 },
+                Designation: { required: true, maxlength: 50 },
+                DateOfJoin: { required: true, date: true },
+                Salary: { required: true, number: true, min: 0 },
+                Gender: { required: true },
+                State: { required: true }
+            },
+            messages: {
+                Name: { required: "Name is required", maxlength: "Name cannot exceed 100 characters" },
+                Designation: { required: "Designation is required", maxlength: "Designation cannot exceed 50 characters" },
+                DateOfJoin: { required: "Joining date is required", date: "Enter a valid date" },
+                Salary: { required: "Salary is required", number: "Enter a valid number", min: "Salary must be greater than 0" },
+                Gender: { required: "Select a gender" },
+                State: { required: "Select a state" }
+            },
+            errorClass: "text-danger"
+        });
+    });
+</script>
